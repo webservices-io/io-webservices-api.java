@@ -1,0 +1,135 @@
+package io.webservices.api.utils;
+
+import io.webservices.api.WebservicesConfiguration;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+/**
+ * A HttpRequestFactory tailored for use at webservices.io. This class extends HttpComponentsClientHttpRequestFactory in
+ * 2 ways:
+ * <ol>
+ * <li>It provides the credentials that are supplied via the WebservicesConfiguration to the HttpClient.</li>
+ * <li>If the insecure SSL security type is specified via the WebservicesConfiguration, then an insecure https
+ * scheme is created and registered to the HttpClient.</li>
+ * </ol>
+ *
+ * @author Rintcius Blok
+ */
+public class WebservicesHttpRequestFactory extends HttpComponentsClientHttpRequestFactory {
+
+    /**
+     * The HttpHost used to configure the HttpClient.
+     */
+    private final HttpHost httpHost;
+
+    /**
+     * Creates a WebservicesHttpRequestFactory based on the supplied WebservicesConfiguration.
+     *
+     * @param cfg The webservices configuration
+     */
+    public WebservicesHttpRequestFactory(WebservicesConfiguration cfg) {
+        super();
+        this.httpHost = parseUrlAsHttpHost(cfg.getBaseUrl());
+
+        if (!(getHttpClient() instanceof DefaultHttpClient)) {
+            throw new IllegalStateException("httpClient needs to be a DefaultHttpClient in order to be able to get the CredentailsProvider");
+        }
+        ((DefaultHttpClient) getHttpClient()).getCredentialsProvider().setCredentials(
+                new AuthScope(httpHost),
+                new UsernamePasswordCredentials(cfg.getUsername(), cfg.getPassword()));
+
+        if (cfg.getSslSecurityType().equals(WebservicesConfiguration.SSLSecurityType.INSECURE)) {
+            SchemeRegistry schemeRegistry = getHttpClient().getConnectionManager().getSchemeRegistry();
+            schemeRegistry.register(createInsecureHttpsScheme());
+        }
+    }
+
+    /**
+     * Parses the supplied base url into a HttpHost.
+     *
+     * @param baseUrl The base url
+     * @return The http host
+     */
+    private static HttpHost parseUrlAsHttpHost(String baseUrl) {
+        URL url;
+        try {
+            url = new URL(baseUrl);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Cannot parse into URL: " + baseUrl);
+        }
+        return new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
+    }
+
+    @Override
+    protected HttpContext createHttpContext(HttpMethod httpMethod, URI uri) {
+        return createHttpContext();
+    }
+
+    /**
+     * Creates a HttpContext setting the AuthCache based on httpHost.
+     *
+     * @return the created HttpContext
+     */
+    private HttpContext createHttpContext() {
+        AuthCache authCache = new BasicAuthCache();
+        authCache.put(httpHost, new BasicScheme());
+
+        BasicHttpContext httpContext = new BasicHttpContext();
+        httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+
+        return httpContext;
+    }
+
+    /**
+     * Creates an insecure https scheme
+     *
+     * @return the insecure https scheme
+     */
+    private static Scheme createInsecureHttpsScheme() {
+        TrustStrategy trustStrategy = new TrustStrategy() {
+            @Override
+            public boolean isTrusted(X509Certificate[] x509Certificates, String authType) throws CertificateException {
+                return true;
+            }
+        };
+
+        SSLSocketFactory insecureSslSocketFactory;
+        try {
+            insecureSslSocketFactory = new SSLSocketFactory(trustStrategy, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (KeyManagementException e) {
+            throw new RuntimeException(e);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        } catch (UnrecoverableKeyException e) {
+            throw new RuntimeException(e);
+        }
+        return new Scheme("https", 443, insecureSslSocketFactory);
+    }
+
+}
