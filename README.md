@@ -1,8 +1,8 @@
 Introduction
 ============
-This module contains the Java API for the webservices available at [http://webservices.io](webservices.io).
+This module contains the Java API for the webservices available at [webservices.io](http://webservices.io).
 
-For the documentation see: [http://webservices.io/java/api](Java API documentation)
+For the documentation see: [Java API documentation](http://webservices.io/java/api)
 
 License
 ============
