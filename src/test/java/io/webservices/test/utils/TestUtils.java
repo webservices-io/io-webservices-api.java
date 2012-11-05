@@ -18,4 +18,8 @@ public class TestUtils {
         }
     }
 
+    public static void setTestTrustStoreAsSystemProperty() {
+        System.setProperty("javax.net.ssl.trustStore",  "src/test/resources/truststore/truststore.jks");
+    }
+
 }

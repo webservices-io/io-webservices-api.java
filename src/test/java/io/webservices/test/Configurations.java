@@ -9,23 +9,18 @@ import org.springframework.context.annotation.Profile;
  * @author Rintcius Blok
  */
 public class Configurations {
+
+    public static final String DEMO_USERNAME = "demo@webservices.io";
+
+    public static final String DEMO_PASSWORD = "secret";
+
     @Configuration
     @Profile("prod")
     public static class ProdConfig {
 
         @Bean
         public WebservicesConfiguration config() {
-            return new WebservicesConfiguration("demo@webservices.io", "secret");
-        }
-    }
-
-    @Configuration
-    @Profile("test")
-    public static class TestConfig {
-
-        @Bean
-        public WebservicesConfiguration config() {
-            return new WebservicesConfiguration("demo@webservices.io", "secret", WebservicesConfiguration.SSLSecurityType.INSECURE);
+            return new WebservicesConfiguration(DEMO_USERNAME, DEMO_PASSWORD);
         }
     }
 
@@ -35,7 +30,7 @@ public class Configurations {
 
         @Bean
         public WebservicesConfiguration config() {
-            return new WebservicesConfiguration("demo@webservices.io", "secret", "http://localhost:9001", WebservicesConfiguration.SSLSecurityType.SECURE);
+            return new WebservicesConfiguration(DEMO_USERNAME, DEMO_PASSWORD, "http://localhost:9001");
         }
     }
 

@@ -1,6 +1,8 @@
 package io.webservices.test;
 
 import io.webservices.api.WebservicesConfiguration;
+import io.webservices.test.utils.TestUtils;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -14,9 +16,14 @@ import javax.inject.Inject;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class,
-        classes = {Configurations.ProdConfig.class, Configurations.TestConfig.class, Configurations.DevConfig.class})
-@ActiveProfiles("test")
+        classes = {Configurations.ProdConfig.class, Configurations.DevConfig.class})
+@ActiveProfiles("prod")
 abstract public class AbstractClientTest {
+
+    @BeforeClass
+    public static void setupClass() {
+        TestUtils.setTestTrustStoreAsSystemProperty();
+    }
 
     @Inject
     protected WebservicesConfiguration cfg;

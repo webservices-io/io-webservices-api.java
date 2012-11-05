@@ -5,6 +5,7 @@ import io.webservices.api.document.model.BytesDocument;
 import io.webservices.api.document.model.UrlDocument;
 import io.webservices.api.document.model.merge.MergeRequest;
 import io.webservices.api.document.model.merge.MergeResponse;
+import io.webservices.test.utils.TestUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -19,17 +20,23 @@ public class DocumentMergerDemo {
 
     public static void main(String[] args) throws IOException {
         // ***************************************************
-        // *** STEP 1 Create the webservices configuration ***
+        // *** STEP 1 Set up SSL                           ***
         // ***************************************************
-        // This configures the client for testing.
-        // The insecure SSLSecurityType basically means that you don't have to install any SSL certificate, so this sample runs out of the box.
-        // This should not be used in production though.
-        WebservicesConfiguration cfg = new WebservicesConfiguration("demo@webservices.io", "secret", WebservicesConfiguration.SSLSecurityType.INSECURE);
-        // In production you would typically install the SSL certificate (see http://webservices.io/ssl) and configure like this:
-        //   WebservicesConfiguration cfg = new WebservicesConfiguration("demo@webservices.io", "secret");
+        // This sets the javax.net.ssl.trustStore property to use the truststore that is provided as a test resource,
+        // so the demo will run out-of-the-box. This truststore contains an entry to just trust api.webservices.io.
+        // See http://webservices.io/ssl for more info.
+        TestUtils.setTestTrustStoreAsSystemProperty();
 
         // ***************************************************
-        // *** STEP 2 Create the DocumentMerger            ***
+        // *** STEP 2 Create the webservices configuration ***
+        // ***************************************************
+        // This configures the client for testing with a predefined demo account.
+        // Note: This demo account will only work with the demo requests.
+        // So in order to try your own requests you have to use your own credentials.
+        WebservicesConfiguration cfg = new WebservicesConfiguration("demo@webservices.io", "secret");
+
+        // ***************************************************
+        // *** STEP 3 Create the DocumentMerger            ***
         // ***************************************************
         DocumentMerger documentMerger = new DocumentMergerClient(cfg);
 
@@ -39,19 +46,19 @@ public class DocumentMergerDemo {
         //   DocumentMerger documentMerger = client.createDocumentMerger();
 
         // ***************************************************
-        // *** STEP 3 Create the MergeRequest              ***
+        // *** STEP 4 Create the MergeRequest              ***
         // ***************************************************
         // Create a MergeRequest in some way (or another):
         MergeRequest mergeRequest = DocumentMergerSamples.bytesToBytesRequest();
         //   MergeRequest mergeRequest = DocumentMergerSamples.cloudToBytesRequest();
 
         // ***************************************************
-        // *** STEP 4 Merge!                               ***
+        // *** STEP 5 Merge!                               ***
         // ***************************************************
         MergeResponse mergeResponse = documentMerger.merge(mergeRequest);
 
         // ***************************************************
-        // *** STEP 5 Do something with the response       ***
+        // *** STEP 6 Do something with the response       ***
         // ***************************************************
         // This assumes that we got a BytesDocument, which is the case for the samples bytesToBytesRequest
         // and cloudToBytesRequest.
@@ -64,7 +71,9 @@ public class DocumentMergerDemo {
 
     private static void doSomethingGreatWith(BytesDocument document) throws IOException {
         // let's save it...
-        FileUtils.writeByteArrayToFile(new File("merged." + document.getFormat()), document.getBytes());
+        String filename = "merged." + document.getFormat();
+        FileUtils.writeByteArrayToFile(new File(filename), document.getBytes());
+        System.out.println("Merge completed. Wrote result to " + filename);
     }
 
 
