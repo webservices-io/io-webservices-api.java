@@ -2,7 +2,7 @@ Introduction
 ============
 This module contains the Java API for the webservices available at [webservices.io](http://webservices.io).
 
-To get started see: [Java API Getting Started](http://webservices.io/java/api) [Not up yet; to be online this week]
+To get started see: [Java API Getting Started](http://webservices.io/gettingStarted/java)
 
 License
 ============
