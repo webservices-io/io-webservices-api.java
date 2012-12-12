@@ -60,13 +60,13 @@ public class DocumentJsonDeserializer extends StdDeserializer<Document> {
                 break;
             }
         }
-        if (documentClass == null) {
-            return null;
-        }
         //TODO find out if something like this can be used:
         //  mapper.treeToValue(root, documentClass);
         Document doc;
-        if (documentClass.equals(UrlDocument.class)) {
+        if (documentClass == null) {
+            // no url and no bytes -> BytesDocument with just a format
+            doc = new BytesDocument(root.get("format").textValue());
+        } else if (documentClass.equals(UrlDocument.class)) {
             doc = new UrlDocument(root.get("url").textValue(), root.get("format").textValue());
         } else if (documentClass.equals(BytesDocument.class)) {
             doc = new BytesDocument(root.get("bytes").binaryValue(), root.get("format").textValue());
