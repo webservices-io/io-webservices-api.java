@@ -5,7 +5,7 @@ This module contains the Java API for the webservices available at [webservices.
 To get started see: [Java API Getting Started](http://webservices.io/gettingStarted/java)
 
 License
-============
+===========
 The code is licensed under the Apache 2.0 license. You are allowed to modify and redistribute this code with the proper attribution.
 
 We also welcome code contributions. Just fork and create a pull request.
